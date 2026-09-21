@@ -124,6 +124,7 @@ qa-automation-assignment
 - Java 17+
 - Maven 3.6+
 - Git
+- Chrome browser or Playwright Chromium
 
 For UI execution, Playwright browser binaries must be installed once.
 
