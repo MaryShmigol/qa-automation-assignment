@@ -1,7 +1,5 @@
 # QA Automation Test Suite
 
-Senior-oriented Java automation solution for the home assignment. The implementation intentionally favors clear boundaries, test independence and maintainability over adding abstractions only for presentation.
-
 ## Tech stack
 
 - Java 17
