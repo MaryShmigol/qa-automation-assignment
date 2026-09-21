@@ -23,13 +23,15 @@ public abstract class BaseUiTest {
     @BeforeEach
     void startBrowser() {
         playwright = Playwright.create();
-        browser = browserType().launch(new BrowserType.LaunchOptions()
-                .setHeadless(false).setSlowMo(300));
+        boolean headless = TestConfig.headless();
+        browser = browserType().launch(
+                new BrowserType.LaunchOptions()
+                        .setHeadless(headless)
+        );
 
-        context = browser.newContext(new Browser.NewContextOptions()
-                .setViewportSize(1440, 1000));
-        context.setDefaultTimeout(TestConfig.uiTimeoutMs());
+        context = browser.newContext();
         page = context.newPage();
+        page.setDefaultTimeout(TestConfig.uiTimeoutMs());
     }
 
     @AfterEach
