@@ -4,6 +4,7 @@ import com.flamingo.qa.tests.ui.base.BaseUiTest;
 import com.flamingo.qa.ui.model.WebTableRecord;
 import com.flamingo.qa.ui.model.WebTableRecordFactory;
 import com.flamingo.qa.ui.pages.WebTablesPage;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -84,6 +85,8 @@ public class WebTablesUiTest extends BaseUiTest {
                 .containsExactly(record.email());
     }
 
+    @Tag("known-issue")
+    @Disabled("DemoQA table headers do not trigger sorting")
     @Test
     void shouldSortAgeAndSalaryAfterAddingNewRecord() {
         WebTableRecord newRecord =

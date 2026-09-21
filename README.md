@@ -338,3 +338,9 @@ In priority order:
 ## Notes on external services
 
 All targets are public demo services. Tests are intentionally small and parallel execution is disabled by default to avoid generating unnecessary traffic.
+
+## Known Issues
+
+The current DemoQA Web Tables implementation does not support sorting
+by clicking the Age or Salary column headers. The corresponding automated
+test is preserved but temporarily disabled with a documented reason.
