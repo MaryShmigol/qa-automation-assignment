@@ -1,0 +1,17 @@
+# Maven
+/target/
+
+# IntelliJ IDEA / Rider
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local configuration / secrets
+.env
+*.local.properties
+
+# Reports generated locally
+allure-report/
