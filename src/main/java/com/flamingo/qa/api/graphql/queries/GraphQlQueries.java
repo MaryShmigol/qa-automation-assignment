@@ -22,23 +22,16 @@ public final class GraphQlQueries {
             }
             """;
 
-    public static final String MOVIE_WITH_FRAGMENT_AND_NESTED_FIELDS = """
-            fragment MovieDetails on Movie {
-              id
-              slug
-              federateMovie {
-                data {
-                  Title
-                  Genre
-                  Director
-                }
-              }
-            }
-
-            query MovieWithDetails($id: ID!) {
+    public static final String MOVIE_WITH_FRAGMENT = """
+            query MovieWithFragment($id: ID!) {
               movie(where: { id: $id }) {
                 ...MovieDetails
               }
+            }
+
+            fragment MovieDetails on Movie {
+              id
+              slug
             }
             """;
 

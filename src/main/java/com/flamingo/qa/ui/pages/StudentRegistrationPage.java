@@ -37,8 +37,6 @@ public final class StudentRegistrationPage {
         page.navigate(TestConfig.uiBaseUrl() + "/automation-practice-form");
         firstName.waitFor();
 
-        // DemoQA injects fixed advertising chrome that can cover controls. Hiding only that
-        // third-party presentation noise keeps the test focused on the form itself.
         page.addStyleTag(new Page.AddStyleTagOptions()
                 .setContent("#fixedban, footer { display: none !important; }"));
 
@@ -116,22 +114,22 @@ public final class StudentRegistrationPage {
     }
 
     private void selectSubject(String subject) {
-        subjects.fill(subject);
-        page.locator("[id^='react-select-'][id*='-option-']")
-                .filter(new Locator.FilterOptions().setHasText(subject))
-                .first()
-                .click();
+        subjects.click();
+        subjects.pressSequentially(
+                subject,
+                new Locator.PressSequentiallyOptions().setDelay(50)
+        );
+        subjects.press("ArrowDown");
+        subjects.press("Enter");
     }
 
     private void selectHobby(String hobby) {
-        String checkboxId = switch (hobby.toLowerCase()) {
-            case "sports" -> "hobbies-checkbox-1";
-            case "reading" -> "hobbies-checkbox-2";
-            case "music" -> "hobbies-checkbox-3";
-            default -> throw new IllegalArgumentException("Unsupported hobby: " + hobby);
-        };
-
-        page.locator("label[for='" + checkboxId + "']").click();
+        page.locator("#hobbiesWrapper")
+                .getByText(
+                        hobby,
+                        new Locator.GetByTextOptions().setExact(true)
+                )
+                .click();
     }
 
     private void selectReactOption(String containerId, String optionText) {

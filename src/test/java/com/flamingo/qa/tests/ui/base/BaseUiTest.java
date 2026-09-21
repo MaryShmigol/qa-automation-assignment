@@ -24,7 +24,7 @@ public abstract class BaseUiTest {
     void startBrowser() {
         playwright = Playwright.create();
         browser = browserType().launch(new BrowserType.LaunchOptions()
-                .setHeadless(TestConfig.headless()));
+                .setHeadless(false).setSlowMo(300));
 
         context = browser.newContext(new Browser.NewContextOptions()
                 .setViewportSize(1440, 1000));

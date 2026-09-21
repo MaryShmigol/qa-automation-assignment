@@ -7,63 +7,120 @@ import com.flamingo.qa.api.graphql.queries.GraphQlQueries;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Map;
 
 @Tag("api")
 @Tag("graphql")
+@Tag("negative")
 class GraphQlNegativeTest {
+    private static final String NON_EXISTING_MOVIE_ID =
+            "clzzzzzzzzzzzzzzzzzzzzzzz";
+
     private final GraphQlClient client = new GraphQlClient();
 
     @Test
     void nonExistingMovieIdShouldReturnNullEntityWithoutGraphQlErrors() {
-        String nonExistingCuid = "clzzzzzzzzzzzzzzzzzzzzzzz";
-
         ApiResponse<JsonNode> response = client.execute(
                 GraphQlQueries.MOVIE_BY_ID,
-                Map.of("id", nonExistingCuid)
+                Map.of("id", NON_EXISTING_MOVIE_ID)
         );
 
-        assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.body().path("data").path("movie").isNull()).isTrue();
-        assertThat(response.body().path("errors").isMissingNode()
-                || response.body().path("errors").isNull()).isTrue();
+        JsonNode responseBody = response.body();
+        JsonNode movie = responseBody.path("data").path("movie");
+        JsonNode errors = responseBody.path("errors");
+
+        assertSoftly(softly -> {
+            softly.assertThat(response.statusCode())
+                    .as("HTTP status code")
+                    .isEqualTo(200);
+
+            softly.assertThat(movie.isNull())
+                    .as("Movie should be null for a non-existing ID")
+                    .isTrue();
+
+            softly.assertThat(
+                            errors.isMissingNode() || errors.isNull()
+                    )
+                    .as("GraphQL errors should be absent or null")
+                    .isTrue();
+        });
     }
 
     @Test
     void malformedQueryShouldReturnSyntaxErrorAndNoData() {
-        ApiResponse<JsonNode> response = client.execute(GraphQlQueries.MALFORMED_QUERY);
+        ApiResponse<JsonNode> response =
+                client.execute(GraphQlQueries.MALFORMED_QUERY);
 
-        assertThat(response.statusCode()).isIn(200, 400);
-        assertErrorsPresent(response.body());
-        assertDataAbsent(response.body());
-        assertThat(response.body().path("errors").get(0).path("message").asText()).isNotBlank();
+        JsonNode responseBody = response.body();
+        JsonNode errors = responseBody.path("errors");
+        JsonNode data = responseBody.path("data");
+        String errorMessage = errors.path(0)
+                .path("message")
+                .asText();
+
+        assertSoftly(softly -> {
+            softly.assertThat(response.statusCode())
+                    .as("HTTP status code for a malformed GraphQL query")
+                    .isIn(400);
+
+            softly.assertThat(errors.isArray())
+                    .as("GraphQL errors should be returned as an array")
+                    .isTrue();
+
+            softly.assertThat(errors.size())
+                    .as("GraphQL errors array should not be empty")
+                    .isPositive();
+
+            softly.assertThat(
+                            data.isMissingNode() || data.isNull()
+                    )
+                    .as("Data should be absent or null")
+                    .isTrue();
+
+            softly.assertThat(errorMessage)
+                    .as("GraphQL syntax error message")
+                    .isNotBlank();
+        });
     }
 
     @Test
     void unknownFieldShouldReturnValidationErrorAndNoData() {
-        ApiResponse<JsonNode> response = client.execute(GraphQlQueries.NON_EXISTENT_FIELD);
+        ApiResponse<JsonNode> response =
+                client.execute(GraphQlQueries.NON_EXISTENT_FIELD);
 
-        assertThat(response.statusCode()).isIn(200, 400);
-        assertErrorsPresent(response.body());
-        assertDataAbsent(response.body());
+        JsonNode responseBody = response.body();
+        JsonNode errors = responseBody.path("errors");
+        JsonNode data = responseBody.path("data");
+        String errorMessage = errors.path(0)
+                .path("message")
+                .asText();
 
-        String message = response.body().path("errors").get(0).path("message").asText();
-        assertThat(message)
-                .isNotBlank()
-                .containsIgnoringCase("field")
-                .contains("definitelyNotARealField");
-    }
+        assertSoftly(softly -> {
+            softly.assertThat(response.statusCode())
+                    .as("HTTP status code for an unknown GraphQL field")
+                    .isIn(400);
 
-    private void assertErrorsPresent(JsonNode body) {
-        JsonNode errors = body.path("errors");
-        assertThat(errors.isArray()).isTrue();
-        assertThat(errors.size()).isGreaterThan(0);
-    }
+            softly.assertThat(errors.isArray())
+                    .as("GraphQL errors should be returned as an array")
+                    .isTrue();
 
-    private void assertDataAbsent(JsonNode body) {
-        JsonNode data = body.path("data");
-        assertThat(data.isMissingNode() || data.isNull()).isTrue();
+            softly.assertThat(errors.size())
+                    .as("GraphQL errors array should not be empty")
+                    .isPositive();
+
+            softly.assertThat(
+                            data.isMissingNode() || data.isNull()
+                    )
+                    .as("Data should be absent or null")
+                    .isTrue();
+
+            softly.assertThat(errorMessage)
+                    .as("GraphQL validation error message")
+                    .isNotBlank()
+                    .containsIgnoringCase("field")
+                    .contains("definitelyNotARealField");
+        });
     }
 }

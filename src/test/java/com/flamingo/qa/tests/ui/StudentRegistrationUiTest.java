@@ -7,48 +7,100 @@ import com.flamingo.qa.ui.model.StudentFactory;
 import com.flamingo.qa.ui.pages.StudentRegistrationPage;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import java.nio.file.Path;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @Tag("ui")
 class StudentRegistrationUiTest extends BaseUiTest {
+    private static final Path UPLOAD_FILE = Path.of(
+            "src",
+            "test",
+            "resources",
+            "files",
+            "sample-upload.txt"
+    ).toAbsolutePath();
 
     @Test
     @Tag("smoke")
     void validStudentFormShouldShowSubmittedDataInSuccessModal() {
-        Path uploadFile = Path.of("src", "test", "resources", "files", "sample-upload.txt").toAbsolutePath();
-        Student student = StudentFactory.validStudent(uploadFile);
-        StudentRegistrationPage registrationPage = new StudentRegistrationPage(page).open();
+        Student student = StudentFactory.validStudent(UPLOAD_FILE);
+        StudentRegistrationPage registrationPage =
+                new StudentRegistrationPage(page).open();
 
         RegistrationResultModal modal = registrationPage.submit(student);
-        Map<String, String> values = modal.submittedValues();
+        Map<String, String> submittedValues = modal.submittedValues();
 
-        assertThat(modal.isVisible()).isTrue();
-        assertThat(modal.title()).isEqualTo("Thanks for submitting the form");
-        assertThat(values.get("Student Name")).isEqualTo(student.firstName() + " " + student.lastName());
-        assertThat(values.get("Student Email")).isEqualTo(student.email());
-        assertThat(values.get("Gender")).isEqualTo(student.gender());
-        assertThat(values.get("Mobile")).isEqualTo(student.mobile());
-        assertThat(values.get("Date of Birth")).isEqualTo("15 May,1990");
-        assertThat(values.get("Subjects")).contains("English");
-        assertThat(values.get("Hobbies")).contains("Reading", "Music");
-        assertThat(values.get("Picture")).isEqualTo("sample-upload.txt");
-        assertThat(values.get("Address")).isEqualTo(student.currentAddress());
-        assertThat(values.get("State and City")).isEqualTo(student.state() + " " + student.city());
+        assertSoftly(softly -> {
+            softly.assertThat(modal.isVisible())
+                    .as("Submission modal should be visible")
+                    .isTrue();
+
+            softly.assertThat(modal.title())
+                    .as("Submission modal title")
+                    .isEqualTo("Thanks for submitting the form");
+
+            softly.assertThat(submittedValues)
+                    .as("Submitted student data")
+                    .containsEntry(
+                            "Student Name",
+                            student.firstName() + " " + student.lastName()
+                    )
+                    .containsEntry("Student Email", student.email())
+                    .containsEntry("Gender", student.gender())
+                    .containsEntry("Mobile", student.mobile())
+                    .containsEntry(
+                            "Date of Birth",
+                            "%d %s,%d".formatted(
+                                    student.birthDay(),
+                                    student.birthMonth(),
+                                    student.birthYear()
+                            )
+                    )
+                    .containsEntry(
+                            "Subjects",
+                            String.join(", ", student.subjects())
+                    )
+                    .containsEntry(
+                            "Hobbies",
+                            String.join(", ", student.hobbies())
+                    )
+                    .containsEntry(
+                            "Picture",
+                            student.picture().getFileName().toString()
+                    )
+                    .containsEntry("Address", student.currentAddress())
+                    .containsEntry(
+                            "State and City",
+                            student.state() + " " + student.city()
+                    );
+        });
     }
 
     @Test
     void emptyRequiredFieldsShouldPreventFormSubmission() {
-        StudentRegistrationPage registrationPage = new StudentRegistrationPage(page)
-                .open()
-                .submitEmptyForm();
+        StudentRegistrationPage registrationPage =
+                new StudentRegistrationPage(page)
+                        .open()
+                        .submitEmptyForm();
 
-        assertThat(registrationPage.isSuccessModalVisible()).isFalse();
-        assertThat(registrationPage.isFirstNameValid()).isFalse();
-        assertThat(registrationPage.isLastNameValid()).isFalse();
-        assertThat(registrationPage.isMobileValid()).isFalse();
+        assertSoftly(softly -> {
+            softly.assertThat(registrationPage.isSuccessModalVisible())
+                    .as("Success modal should not be visible")
+                    .isFalse();
+
+            softly.assertThat(registrationPage.isFirstNameValid())
+                    .as("First name should be invalid")
+                    .isFalse();
+
+            softly.assertThat(registrationPage.isLastNameValid())
+                    .as("Last name should be invalid")
+                    .isFalse();
+
+            softly.assertThat(registrationPage.isMobileValid())
+                    .as("Mobile number should be invalid")
+                    .isFalse();
+        });
     }
 }
