@@ -46,10 +46,11 @@ jobs:
         run: mvn -B -q exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps chromium"
 
       - name: Run UI tests
-        env:
-          HEADLESS: 'true'
-          BROWSER: chromium
-        run: mvn -B test -Dgroups=ui -Dheadless=true -Dbrowser=chromium
+        run: >
+          mvn --batch-mode test
+          -Dgroups=ui
+          -Dheadless=true
+          -Dbrowser=chromium
 
       - name: Upload UI test artifacts
         if: always()
