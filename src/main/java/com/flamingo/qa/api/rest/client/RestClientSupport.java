@@ -16,7 +16,7 @@ abstract class RestClientSupport {
         return new RequestSpecBuilder()
                 .setBaseUri(TestConfig.restBaseUrl())
                 .setContentType(ContentType.JSON)
-                .setAccept(ContentType.JSON)
+                .addHeader("Accept", "application/json")
                 .addFilter(new AllureRestAssured())
                 .build();
     }

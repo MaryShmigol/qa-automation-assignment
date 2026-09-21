@@ -3,6 +3,7 @@ package com.flamingo.qa.api.rest.client;
 import com.flamingo.qa.api.common.ApiResponse;
 import com.flamingo.qa.api.rest.model.Booking;
 import com.flamingo.qa.api.rest.model.CreateBookingResponse;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
 import static io.restassured.RestAssured.given;
@@ -13,16 +14,20 @@ public final class BookingClient extends RestClientSupport {
         Response response = given()
                 .spec(requestSpec())
                 .body(booking)
+                .log().all()
                 .when()
                 .post("/booking");
 
-        CreateBookingResponse body = response.statusCode() == 200
-                ? deserialize(response, CreateBookingResponse.class)
-                : null;
+        response.then().log().all();
+
+        CreateBookingResponse responseBody =
+                response.statusCode() == 200
+                        ? deserialize(response, CreateBookingResponse.class)
+                        : null;
 
         return new ApiResponse<>(
                 response.statusCode(),
-                body,
+                responseBody,
                 response.asString()
         );
     }
